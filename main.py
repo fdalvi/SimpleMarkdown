@@ -32,6 +32,13 @@ class MainWindow(gtk.Window):
         table = gtk.Table(1, 2, True)
 
         self.text = gtk.TextView()
+        buffer = self.text.get_buffer();
+        buffer.connect("changed", self.convert)
+        self.text.set_left_margin(20)
+        self.text.set_right_margin(20)
+        self.text.set_wrap_mode(gtk.WRAP_WORD_CHAR)
+        self.text.set_border_window_size(gtk.TEXT_WINDOW_RIGHT, 5)
+        
         self.text.set_editable(gtk.TRUE)
         table.attach(self.text, 0, 1, 0, 1)
 
@@ -43,6 +50,9 @@ class MainWindow(gtk.Window):
         self.add(vbox)
 
         self.show_all()
+
+    def printa(self,widget):
+        print "changed"
 
     def createMenuBar(self, vbox):
         menubar = gtk.MenuBar()
@@ -65,9 +75,12 @@ class MainWindow(gtk.Window):
         toolsMenu = gtk.MenuItem("Tools")
         toolsSubMenu = gtk.Menu()
         toolsMenu.set_submenu(toolsSubMenu)
-        fileMenuExit = gtk.MenuItem("_Preview")
-        fileMenuExit.connect("activate", self.preview)
-        toolsSubMenu.append(fileMenuExit)
+        toolsMenuPreview = gtk.MenuItem("_Preview")
+        toolsMenuPreview.connect("activate", self.convert)
+        toolsSubMenu.append(toolsMenuPreview)
+        toolsMenuViewSource = gtk.MenuItem("_View Source")
+        toolsMenuViewSource.connect("activate", self.sourceMode)
+        toolsSubMenu.append(toolsMenuViewSource)
 
         menubar.append(toolsMenu);
 
@@ -94,10 +107,14 @@ class MainWindow(gtk.Window):
         about.run()
         about.destroy()
 
-    def preview(self, widget):
+    def convert(self, widget):
         markdowner = external.markdown2.Markdown()
         textBuffer = self.text.get_buffer();
         self.preview.load_html_string(markdowner.convert(textBuffer.get_text(textBuffer.get_start_iter(), textBuffer.get_end_iter())), "file:///")
+
+    def sourceMode(self, widget):
+        self.preview.set_view_source_mode(True)
+        self.convert(widget)
 
 
 MainWindow()
