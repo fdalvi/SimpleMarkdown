@@ -2,6 +2,8 @@
 
 import gtk
 import sys
+import external.markdown2
+import webkit
 
 class MainWindow(gtk.Window):
     def __init__(self):
@@ -29,9 +31,14 @@ class MainWindow(gtk.Window):
         
         table = gtk.Table(1, 2, True)
 
-        text = gtk.TextView()
-        text.set_editable(gtk.TRUE)
-        table.attach(text, 0, 1, 0, 1)
+        self.text = gtk.TextView()
+        self.text.set_editable(gtk.TRUE)
+        table.attach(self.text, 0, 1, 0, 1)
+
+        self.preview = webkit.WebView()
+        
+        table.attach(self.preview, 1, 2, 0, 1)
+
         vbox.pack_end(table, True, True, 0)
         self.add(vbox)
 
@@ -53,6 +60,16 @@ class MainWindow(gtk.Window):
         fileSubMenu.append(fileMenuExit)
 
         menubar.append(fileMenu);
+
+        # Tools menu
+        toolsMenu = gtk.MenuItem("Tools")
+        toolsSubMenu = gtk.Menu()
+        toolsMenu.set_submenu(toolsSubMenu)
+        fileMenuExit = gtk.MenuItem("_Preview")
+        fileMenuExit.connect("activate", self.preview)
+        toolsSubMenu.append(fileMenuExit)
+
+        menubar.append(toolsMenu);
 
         # Help menu
         helpMenu = gtk.MenuItem("Help")
@@ -76,6 +93,12 @@ class MainWindow(gtk.Window):
         about.set_logo(gtk.gdk.pixbuf_new_from_file("logo.png"))
         about.run()
         about.destroy()
+
+    def preview(self, widget):
+        markdowner = external.markdown2.Markdown()
+        textBuffer = self.text.get_buffer();
+        self.preview.load_html_string(markdowner.convert(textBuffer.get_text(textBuffer.get_start_iter(), textBuffer.get_end_iter())), "file:///")
+
 
 MainWindow()
 gtk.main()
